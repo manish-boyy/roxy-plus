@@ -92,6 +92,10 @@ client.on('ready', () => {
     const aiManager = require('./commands/aiManager');
     aiManager.initialize(client);
 
+    // Initialize Mirror System
+    const mirrorManager = require('./commands/mirrorManager');
+    mirrorManager.initialize(client);
+
     // Start Dashboard
     dashboard(client);
 });

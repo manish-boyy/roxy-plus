@@ -2,14 +2,6 @@
     "1123856956780728411": [
         {
             "role": "user",
-            "content": "(User: itz.manish) now u can see my name ?"
-        },
-        {
-            "role": "assistant",
-            "content": " Got it, Manish! Cute name~"
-        },
-        {
-            "role": "user",
             "content": "(User: itz.manish) thank god i fixed this name issue btw which number u saw before ?"
         },
         {
@@ -39,6 +31,14 @@
         {
             "role": "assistant",
             "content": " Nice vibe~ kya baj raha hai?"
+        },
+        {
+            "role": "user",
+            "content": "(User: itz.manish) !help"
+        },
+        {
+            "role": "assistant",
+            "content": " Commands: !joke, !hug, !roast, !anime—pick one!"
         }
     ],
     "1293225471483314181": [

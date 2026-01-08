@@ -346,6 +346,74 @@ module.exports = (client) => {
         res.render('cmd_mirror', { user: client.user, page: 'commands' });
     });
 
+    // --- Mirror Routes ---
+    app.get('/api/mirror', (req, res) => {
+        const mirrorManager = require('../commands/mirrorManager');
+        const list = mirrorManager.getActiveMirrors() || [];
+        const enriched = list.map(m => {
+            const s = client.channels.cache.get(m.sourceId);
+            const t = client.channels.cache.get(m.targetId);
+            return {
+                ...m,
+                sourceName: s ? `#${s.name} (${s.guild?.name || 'DM'})` : m.sourceId,
+                targetName: t ? `#${t.name} (${t.guild?.name || 'DM'})` : m.targetId,
+                sourceIcon: s?.guild?.iconURL({ dynamic: true }) || 'https://cdn.discordapp.com/embed/avatars/0.png',
+                targetIcon: t?.guild?.iconURL({ dynamic: true }) || 'https://cdn.discordapp.com/embed/avatars/0.png'
+            };
+        });
+        res.json(enriched);
+    });
+
+    app.post('/api/mirror', async (req, res) => {
+        const { sourceId, targetId, mode } = req.body;
+        const mirrorManager = require('../commands/mirrorManager');
+        try {
+            await mirrorManager.startMirror(client, sourceId, targetId, mode);
+            res.json({ success: true });
+        } catch (e) {
+            res.status(400).json({ error: e.message });
+        }
+    });
+
+    app.delete('/api/mirror', async (req, res) => {
+        const { sourceId } = req.body;
+        const mirrorManager = require('../commands/mirrorManager');
+        await mirrorManager.stopMirror(sourceId);
+        res.json({ success: true });
+    });
+
+    app.post('/api/validate/mirror-channel', async (req, res) => {
+        const { id, checkWebhook } = req.body;
+        try {
+            const channel = await client.channels.fetch(id).catch(() => null);
+            if (!channel) return res.status(404).json({ error: 'Channel not found/Not Visible' });
+
+            if (!channel.isText()) return res.status(400).json({ error: 'Not a text channel' });
+
+            // Selfbots have full user perms, just check if we can view/send
+            // But channel.permissionsFor works if in guild.
+            if (channel.guild) {
+                const permissions = channel.permissionsFor(client.user);
+                if (!permissions.has('SEND_MESSAGES')) return res.status(403).json({ error: 'Missing SEND_MESSAGES permission' });
+
+                if (checkWebhook) {
+                    if (!permissions.has('MANAGE_WEBHOOKS')) return res.status(403).json({ error: 'Missing MANAGE_WEBHOOKS permission (Required for Clone)' });
+                }
+            } else {
+                // DM - always can send if friend?
+                // Webhooks don't work in DMs.
+                if (checkWebhook) return res.status(400).json({ error: 'Clone Mode (Webhooks) not supported in DMs' });
+            }
+
+            res.json({
+                success: true,
+                name: channel.name || 'DM',
+                guildName: channel.guild?.name || 'Direct Message',
+                icon: channel.guild?.iconURL({ dynamic: true }) || channel.recipient?.displayAvatarURL({ dynamic: true })
+            });
+        } catch (e) { res.status(500).json({ error: e.message }); }
+    });
+
     app.get('/commands/:category', (req, res) => {
         const category = req.params.category;
         res.render('commands_sub', {

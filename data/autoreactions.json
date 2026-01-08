@@ -1,15 +1,7 @@
 {
   "global": false,
-  "enabledServers": [
-    "1440788239458898075"
-  ],
-  "enabledChannels": [
-    "1457323046926028860"
-  ],
-  "textTriggers": {
-    "xd": [
-      "😂"
-    ]
-  },
+  "enabledServers": [],
+  "enabledChannels": [],
+  "textTriggers": {},
   "userTriggers": {}
 }
